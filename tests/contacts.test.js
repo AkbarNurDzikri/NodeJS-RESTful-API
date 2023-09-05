@@ -1,6 +1,6 @@
 import supertest from 'supertest';
 import {web} from '../src/application/web.js';
-import {createTestUser, removeAllTestContact, removeTestUser} from "./test-utils.js";
+import {createTestContact, createTestUser, getTestContact, removeAllTestContact, removeTestUser} from "./test-utils.js";
 
 describe('POST /api/contacts', () => {
   beforeEach(async () => {
@@ -20,7 +20,7 @@ describe('POST /api/contacts', () => {
         firstName: 'test',
         lastName: 'test',
         email: 'test@pzn.com',
-        phone: '245265'
+        phone: '123456'
       });
 
     expect(result.status).toBe(200);
@@ -28,7 +28,7 @@ describe('POST /api/contacts', () => {
     expect(result.body.data.firstName).toBe('test');
     expect(result.body.data.lastName).toBe('test');
     expect(result.body.data.email).toBe('test@pzn.com');
-    expect(result.body.data.phone).toBe('245265');
+    expect(result.body.data.phone).toBe('123456');
   });
 
   it('should reject if request is invalid', async () => {
@@ -44,5 +44,40 @@ describe('POST /api/contacts', () => {
 
     expect(result.status).toBe(400);
     expect(result.body.errors).toBeDefined();
+  });
+});
+
+describe('GET /api/contacts/:contactId', () => {
+  beforeEach(async () => {
+    await createTestUser();
+    await createTestContact();
+  });
+
+  afterEach(async () => {
+    await removeAllTestContact()
+    await removeTestUser();
+  });
+
+  it('should can get contact', async () => {
+    const testContact = await getTestContact();
+    const result = await supertest(web)
+      .get('/api/contacts/' + testContact.id)
+      .set('Authorization', 'test');
+
+    expect(result.status).toBe(200);
+    expect(result.body.data.id).toBe(testContact.id);
+    expect(result.body.data.firstName).toBe(testContact.firstName);
+    expect(result.body.data.lastName).toBe(testContact.lastName);
+    expect(result.body.data.email).toBe(testContact.email);
+    expect(result.body.data.phone).toBe(testContact.phone);
+  });
+
+  it('should return 404 if contactId is not found', async () => {
+    const testContact = await getTestContact();
+    const result = await supertest(web)
+      .get('/api/contacts/' + (testContact.id +1))
+      .set('Authorization', 'test');
+
+    expect(result.status).toBe(404);
   });
 });
