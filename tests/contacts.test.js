@@ -81,3 +81,65 @@ describe('GET /api/contacts/:contactId', () => {
     expect(result.status).toBe(404);
   });
 });
+
+describe('PUT /api/contacts/:contactId', () => {
+  beforeEach(async () => {
+    await createTestUser();
+    await createTestContact();
+  });
+
+  afterEach(async () => {
+    await removeAllTestContact()
+    await removeTestUser();
+  });
+
+  it('should can update exist contact', async () => {
+    const testContact = await getTestContact();
+    const result = await supertest(web)
+      .put('/api/contacts/' + testContact.id)
+      .set('Authorization', 'test')
+      .send({
+        firstName: 'Dzikri',
+        lastName: 'Nur Akbar',
+        email: 'dzikrinurakbar94@gmail.com',
+        phone: '0123456'
+      });
+
+    expect(result.status).toBe(200);
+    expect(result.body.data.id).toBe(testContact.id);
+    expect(result.body.data.firstName).toBe('Dzikri');
+    expect(result.body.data.lastName).toBe('Nur Akbar');
+    expect(result.body.data.email).toBe('dzikrinurakbar94@gmail.com');
+    expect(result.body.data.phone).toBe('0123456');
+  });
+
+  it('should reject if request is invalid', async () => {
+    const testContact = await getTestContact();
+    const result = await supertest(web)
+      .put('/api/contacts/' + testContact.id)
+      .set('Authorization', 'test')
+      .send({
+        firstName: '', // dikosongkan
+        lastName: 'Nur Akbar',
+        email: 'formatemailsalah', // format email tidak sesuai
+        phone: '012345614524359283567823456' // karakter > 20
+      });
+
+    expect(result.status).toBe(400);
+  });
+
+  it('should reject if contact is not found', async () => {
+    const testContact = await getTestContact();
+    const result = await supertest(web)
+      .put('/api/contacts/' + (testContact.id + 1)) // parameter di set dengan id yang tidak ada di database
+      .set('Authorization', 'test')
+      .send({
+        firstName: 'Dzikri',
+        lastName: 'Nur Akbar',
+        email: 'dzikrinurakbar94@gmail.com',
+        phone: '0123456'
+      });
+
+    expect(result.status).toBe(404);
+  });
+});

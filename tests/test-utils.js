@@ -10,7 +10,7 @@ export const removeTestUser = async () => {
 };
 
 export const createTestUser = async () => {
-  await prismaClient.user.create({
+  return prismaClient.user.create({
     data: {
       username: "test",
       password: await bcrypt.hash("rahasia", 10),
