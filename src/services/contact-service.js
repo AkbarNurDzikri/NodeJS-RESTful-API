@@ -1,4 +1,4 @@
-import { createContactValidation, getContactvalidation, searchContactValidation, updateContactValidation } from "../validations/contact-validation.js";
+import { createContactValidation, getContactValidation, searchContactValidation, updateContactValidation } from "../validations/contact-validation.js";
 import { validate } from "../validations/validation.js";
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../errors/response-error.js";
@@ -20,7 +20,7 @@ const create = async (user, request) => {
 };
 
 const get = async (user, contactId) => {
-  contactId = validate(getContactvalidation, contactId);
+  contactId = validate(getContactValidation, contactId);
   const contact = await prismaClient.contact.findFirst({
     where: {
       username: user.username,
@@ -76,7 +76,7 @@ const update = async (user, request) => {
 };
 
 const remove = async (user, contactId) => {
-  contactId = validate(getContactvalidation, contactId);
+  contactId = validate(getContactValidation, contactId);
   const totalInDatabase = await prismaClient.contact.count({
     where: {
       username: user.username,
