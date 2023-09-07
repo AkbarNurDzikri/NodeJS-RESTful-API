@@ -43,6 +43,5 @@ model Address {
   contactId Int
   contact Contact @relation(fields: [contactId], references: [id])
 
-
   @@map("addresses")
 }
