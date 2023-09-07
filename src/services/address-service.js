@@ -1,10 +1,11 @@
-import { createAddressValidation } from "../validations/address-validation.js";
+import { createAddressValidation, getAddressValidation } from "../validations/address-validation.js";
 import { validate } from "../validations/validation.js";
 import { getContactValidation } from "../validations/contact-validation.js";
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../errors/response-error.js";
+import { add } from "winston";
 
-const create = async (user, contactId, request) => {
+const checkContactIdMustExists = async (user, contactId) => {
   contactId = validate(getContactValidation, contactId);
   const totalContactInDatabase = await prismaClient.contact.count({
     where: {
@@ -16,6 +17,12 @@ const create = async (user, contactId, request) => {
   if(totalContactInDatabase !== 1) {
     throw new ResponseError(404, 'Contact is not found !');
   }
+
+  return contactId;
+};
+
+const create = async (user, contactId, request) => {
+  contactId = await checkContactIdMustExists(user, contactId);
 
   const address = validate(createAddressValidation, request);
   address.contactId = contactId;
@@ -33,4 +40,30 @@ const create = async (user, contactId, request) => {
   });
 };
 
-export default {create};
+const get = async (user, contactId, addressId) => {
+  contactId = await checkContactIdMustExists(user, contactId);
+  addressId = validate(getAddressValidation, addressId);
+
+  const address = await prismaClient.address.findFirst({
+    where: {
+      contactId: contactId,
+      id: addressId
+    },
+    select: {
+      id: true,
+      street: true,
+      city: true,
+      province: true,
+      country: true,
+      postCode: true
+    }
+  });
+
+  if(!address) {
+    throw new ResponseError(404, 'Address is not found !');
+  }
+
+  return address;
+};
+
+export default {create, get};

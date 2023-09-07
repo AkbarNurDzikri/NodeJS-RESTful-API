@@ -8,4 +8,6 @@ const createAddressValidation = Joi.object({
   postCode: Joi.string().max(10).required()
 });
 
-export {createAddressValidation};
+const getAddressValidation = Joi.number().positive().min(1).required();
+
+export {createAddressValidation, getAddressValidation};
